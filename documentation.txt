@@ -1,0 +1,48 @@
+timer.py
+------------------------------------------
+
+Description: 
+    The python file responsible to run every 5 minutes to detect laptop activity. It also saves the overall browser activity in a browser_history_log.json file.
+
+Sequence of progess and development:
+
+Whenever the cronjob calls the timer.py function(every 5 minutes) we need the name of the current running process e.g. terminal, nautilus, vscode, etc or in case of browser, we need the URL of the active tab opened in that browser. 
+
+Hence, we first need to identify which process is running without using any external dependency. There are many stackoverflow solutions to find the active process id(pid) currently running, but there were many complicacies in them. One of them was the concept of parent and child pids which made it complex to decode the actual pid of the current process. 
+
+With more and more searching, another UNIX command was explored namely xdotool. As per the man page of xdotool, it is programatical way to simulate keyboard input and mouse activity, move and resize windows , etc. This tool brought new possibilities of activity detection with common methodology for offline and browser activity detection. 
+
+Using getactivewindow and getwindowpid attributes of xdotool, we get the exact pid of current active process in the system monitor. Now using the ps command, we fetch the active process name e.g. gnome-terminal, totem, etc. But here, we are only able to get the browser name if a broswer is active right now. So how to get the current active website opened in the browser. 
+
+As we know that ctrl + L command shifts the focus to the browser URL area, we can thence copy it using ctrl + C command and fetch the copied URL in the program using ctrl + V. This when implemented using xdotool worked as expected. But there came many unexpected caveats with this technique. When the user is browsing or typing anything or has anything copied in the system clipboard for any future work, our implementation interrupts the work by changing focus to the URL area, and due to the internal ctrl + C command, the clipboard is also now different than expected by the user. Hence, causing too much trouble to the user. 
+
+We, therefore needed to create 2 other processes to deal with just the broswer data extraction part. 1 was a function named browser_activity(), while other was a python program named processreader.py having the method fetch_links_firefox(). 
+
+processreader.fetch_links_firefox():
+""" Returns a dictionary of all tabs currently opened in firefox along with their URLS.
+E.g. {'Facebook – log in or sign up': 'https://www.facebook.com/'}} """
+
+    Using regular expression, finds the correct path to the default mozilla history file(the file which has URL to all websites opened in firefox).
+
+    After decompressing the database file, we get the list of all opened websites along with their URLs as a dictionary. 
+
+timer.browser_activity():
+""" Returns the website name which is active in the firefox browser. Sample output : "facebook" """
+
+    Finds the current title of the active tab in the broswer using xdotool. 
+    
+    Now calls the fetch_links_firefox() function to get all the list of webistes and URLs opened right now. Searches for the current title in that dictionary and returns the domain name from the link. E.g. if link is support.mozilla.com, or mozilla.com it returns "mozilla".
+    
+The returned domain name is stored in a variable named tab. Now from the entry in timer.json(the file with activity data for each day) we goto the "browser" sub-dictionary and increase the usage time of <tab> by 5 minutes(since we check for activity every 5 minutes itself).
+
+If the active window was not a browser, then we simply create an entry for that process in current date's entry and increase count by 5.
+
+The final updated database is dumped. 
+END of process.
+
+Other side features in timer.py:
+
+1. Whenever a new day starts, first save the activity bar chart by accessing the timer data from the previous date and display it automatically as per activity name. 
+2. A global history file namely "browser_history_log.json" is maintained where every website ever accessed is stored along with the frequency of times it is accessed since last updation. This global history file will be used for efficient categorization purpose where the top-k most used domains whichare still unclassified would be prompted to the user.
+ 
+ 

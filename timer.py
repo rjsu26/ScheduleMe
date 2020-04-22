@@ -101,7 +101,7 @@ def do_the_work():
         p_name = (
             subprocess.check_output(["ps", "-p", p_id, "-o", "comm="]).decode("utf-8").strip()
         )
-        p_name = "gnome-terminal" if "gnome-terminal" in p_name else p_name
+        p_name = "gnome-terminal" if p_name=="gnome-terminal-"   else p_name
         list_browsers=["firefox-bin", "vivaldi-bin"]
 
         tab=""
@@ -118,7 +118,7 @@ def do_the_work():
                 timer_dic[today_date]["browser"][tab] = timer_dic[today_date]["browser"].get(tab,0) + 5
             else:
                 timer_dic[today_date]["browser"]["private"] = timer_dic[today_date]["browser"].get("private",0) + 5
-                os.system("notify-send  -u critical private")
+                # os.system("notify-send  -u critical private")
 
 
         else:
