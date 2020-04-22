@@ -2,6 +2,7 @@
 cd $HOME/Documents/scheduler/
 source venv_scheduler/bin/activate
 # virtualenv is now active, which means your PATH has been modified.
-chmod +x timer.py
+chmod +x read_birthday.py
 
-./timer.py
+
+./read_birthday.py

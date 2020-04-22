@@ -66,7 +66,7 @@ def do_the_work():
     update_time = datetime.now().time().strftime("%H:%M:%S")
 
     timer_dic = {}
-    try:
+    try:    
         timer_dic = json.load(open("/home/raj/Documents/scheduler/timer.json", "r"))
     except :
         pass

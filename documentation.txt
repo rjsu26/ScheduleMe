@@ -42,7 +42,78 @@ END of process.
 
 Other side features in timer.py:
 
-1. Whenever a new day starts, first save the activity bar chart by accessing the timer data from the previous date and display it automatically as per activity name. 
-2. A global history file namely "browser_history_log.json" is maintained where every website ever accessed is stored along with the frequency of times it is accessed since last updation. This global history file will be used for efficient categorization purpose where the top-k most used domains whichare still unclassified would be prompted to the user.
- 
- 
+    1. Whenever a new day starts, first save the activity bar chart by accessing the timer data from the previous date and display it automatically as per activity name. 
+
+    2. A global history file namely "browser_history_log.json" is maintained where every website ever accessed is stored along with the frequency of times it is accessed since last updation. This global history file will be used for efficient categorization purpose where the top-k most used domains which are still unclassified would be prompted to the user for their correct intended category. 
+
+    E.g. If "itsfoss.com" is a new entry but frequently used, it would be prompted to the user, who if enters to as an educational website, then "itsfoss.com" will be mapped to educational for all future references. 
+    
+Activation:
+
+    For this timer.py to work, we need to set it inside cronjob for every 5 minutes but before that the necessary virtual environment must be activated. For this we use a shell script program file(venv_activate.sh) which will first activate the virtualenv and then call the timer.py program. 
+
+    The cronjob is written as :
+    */5 * * * * /home/raj/Documents/scheduler/venv_activate.sh 2>/home/raj/Documents/scheduler/timer_err.txt # timer
+--------------------------------------------------------------------
+
+history_reader.py:
+----------------------------------
+
+Description:
+    """ Program to read all history from all available browsers in the system and use their frequency count for categorization purpose. To be used as cron job set to once every month."""
+
+Methods:
+
+1. find_all_browsers():
+""" scan /usr/share/applications folder for all applications with WebBrowser in Categories field"""  
+
+    Function to find all the webbrowsers in the system. It returns a list of browsers, which would be later on iterated to fetch history file of respective browsers from the PC.
+
+2. firefox_history_scan():
+""" Scan the sqlite file of firefox history in the PC and add all visited URLs along with their visit count to browser_history_log.json. This will be used to request the user for categorize the most visited yet unresolved domains in the browser."""
+
+    Function to first find the correct path to the places.sqlite file in the PC(the path is unique for all systems, hence no fixed path is defined). The file places.sqlite is a sqlite db file to store different data related to firefox browser history. More details about the table schema can be found at: https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Database. 
+
+    By running select command to query all over the history, we update our browser_history_log.json with the count of all websites listed in the history file.  
+
+-----------------------------------------------------------------------------------------
+
+
+add_birthdays.py :
+-----------------------------------
+
+Description: A program to enter birthdate and associated name as input from a user, validate the date, check whether a similar entry pre-exists before adding a new date. All data is saved in a file named "birthday_data.json".
+
+Methods:
+
+    1. get_valid_date();
+    """ Validate the date entered by the user. If the numbers are incorrect, then return false """
+
+    Takes input date from the user in the form of DD-MM and applies 4 different error handlers to filter unwanted input such as date >31 or alphanumeric input or format other than DD-MM, etc. If all checks are passed, then the date and month is returned. 
+
+    2. add_birthdaays_to_dict():
+    """ To add a new birthdate entry into the file"""
+
+    To take valid date month entry of birthday along with name of the associated person into the "birthday_data.json" file.
+
+-----------------------------------------------------------------------------
+
+read_birthday.py :
+--------------------------------------
+
+Description: "To get current date and check for all entries which are within 1 week from today. Give a notification of all the names as a pop-up to the user. This program will be set on cronjob of every 7 days."
+
+Working:
+
+* Read the "birthday_data.json" and use datetime inbuilt-module to get current data
+* Iterate on all the days starting from today uptill 6th day(span of 1 week) and give notification of all names along with dates. 
+
+------------------------------------------------------------------------------------------------------
+
+activate_birthday.sh:
+-------------------------------
+
+This is the bash script which the cronjob will execute every 7 days. Its primary job is to first activate the virtual environment, then make the read_birthday file as executable and at last run the read_birthday file.
+
+The cronjob will look like this: 
+
