@@ -28,9 +28,9 @@ def get_valid_date(prompt):
 
 def add_birthdays_to_dict():
     """ To add a new birthdate entry into the file"""
-    date, month = get_valid_date("Enter a date in DD-MM format(no year!): ")
     
     while True: # input  validation for Date and month
+        date, month = get_valid_date("Enter a date in DD-MM format(no year!): ")
         print("You just entered {}-{}".format(date, dt.date(1,month,1).strftime("%B"))) 
         choice= input("Want to change?(y / blank for NO) ")
         if choice.lower()!='y':
