@@ -60,21 +60,39 @@ history_reader.py:
 ----------------------------------
 
 Description:
-    """ Program to read all history from all available browsers in the system and use their frequency count for categorization purpose. To be used as cron job set to once every month."""
+    """ Program to read all history from firefox in the system and use their frequency count for categorization purpose. To be used as cron job set to once every month."""
+
+We define 4 categories in that would be the basis of our whole Scheduler:
+    1. Academic
+    2. Non-Academic
+    3. Entertainment
+    4. Miscellaneous 
+
+The methods first detect whether its an installation-run(program run for the first time) or a normal run. 
+
+If an installation-run, all the history in firefox till now will be used to be sorted as per their frequency of visit, and prompted to the user for classify the domain as either of the 4 categories mentioned above. This is followed by a categorisation process for all the system applications. 
+
+Otherwise, if its a normal run, then simply access the "browser_history_log.json" file(where browser tabs opened on daily basis is stored everyday) and do the same sorting and categorisation process with the help of user. 
 
 Methods:
 
-1. find_all_browsers():
-""" scan /usr/share/applications folder for all applications with WebBrowser in Categories field"""  
-
-    Function to find all the webbrowsers in the system. It returns a list of browsers, which would be later on iterated to fetch history file of respective browsers from the PC.
+1. find_all_applications():
+"""  scan /usr/share/applications folder and return a dictionary of all applications in the system with mapping of system name to display name. E.g: nautilus: File Explorer. """  
 
 2. firefox_history_scan():
 """ Scan the sqlite file of firefox history in the PC and add all visited URLs along with their visit count to browser_history_log.json. This will be used to request the user for categorize the most visited yet unresolved domains in the browser."""
 
     Function to first find the correct path to the places.sqlite file in the PC(the path is unique for all systems, hence no fixed path is defined). The file places.sqlite is a sqlite db file to store different data related to firefox browser history. More details about the table schema can be found at: https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Database. 
 
+    Since a system has usually multiple profiles within firefox browser, there exists multiple places.sqlite. The one which is into current use is locked for safety using PRAGMA lock feature in sqlite. To bypass this, whenever we need to access that locked db file, we need to first create a copy of that file, access that duplicate file and delete it after use. 
+    
     By running select command to query all over the history, we update our browser_history_log.json with the count of all websites listed in the history file.  
+
+3. do_the_categorization():
+""" Using the un-classified data and previously categorised data, prompt the user for top most visited unclassified websites and then put them inside categorised data after  removing it from the unclassified data. """
+
+4. main():
+    The main function to call other functions and do the work. Also has try-catch block for keyboardInterrup (Ctrl+C).
 
 -----------------------------------------------------------------------------------------
 
@@ -116,4 +134,28 @@ activate_birthday.sh:
 This is the bash script which the cronjob will execute every 7 days. Its primary job is to first activate the virtual environment, then make the read_birthday file as executable and at last run the read_birthday file.
 
 The cronjob will look like this: 
+@weekly /home/raj/Documents/scheduler/activate_birthday.sh 2>/home/raj/Documents/scheduler/birthday_err.txt # birthday
+
+---------------------------------------------------------------------------------
+
+
+youtube_scraping.py:
+---------------------------------
+
+Whenever a youtube activity is detected, we need to find which category the video belongs to. This python program will scrape that youtube page to extract the category from its html. 
+
+What are categories?
+Youtube classifies each video into one of the 15 categories by its own algorithm. Those categories include Music, Gaming, Comedy, People and Blogs, News & Politics, etc. Youtube uses the current category of the video to recommend more videos in the side bar or in future. These categories are not always completely accurate but its our best bet to classify user activity in youtube. 
+
+Methods:
+
+    * find_category(link):
+    """ Takes the youtube link as input and returns the category of video being played in youtube. Returns "0" when no category is found for any reason."""
+
+    This function uses beautifulSoup and requests library to first fetch the html from the given youtube link and then search for a hard-coded class inside that html which usually has the category info. It has to be made clear, that companies often rename their html tags and classes so as to defy such scrapping bots, which makes it necessary to keep maintaining and renaming the hard-coded class name inside the program. 
+
+    The function will return the obtained class name, but if any error occurs, it will return "0" string.
+
+-------------------------------------------------------------------------------------
+
 

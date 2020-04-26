@@ -20,7 +20,7 @@ def notify_dates():
     with open(filename, 'r') as check_file:
         data = json.load(check_file)
         # print(data)
-        for i in range(7): # <i> will be used as timedelta ranging from 0 to 6 days
+        for i in range(8): # <i> will be used as timedelta ranging from 0 to 7 days. 7th day is intentially left to be overlapping because it might happen that the 7th day had someone's birthday but due to no use of PC of the 7th day, the cronjob couldn't work that day. It would lead to failure of the intended cause.
             new_date = (current_date+dt.timedelta(days=i)).strftime("%d-%m")
             if data.get(new_date)!=None:
                 d = dt.datetime.strptime(new_date, "%d-%m")
