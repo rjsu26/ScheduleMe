@@ -12,7 +12,7 @@ os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
 filename = 'birthday_data.json'
 
 def message(title, message):
-  os.system('notify-send  -t 1 -u low "'+title+'" "'+message+'"')
+  os.system('notify-send  -u low "'+title+'" "'+message+'"')
 
 def notify_dates():
     current_date = dt.datetime.today()
@@ -34,6 +34,7 @@ def notify_dates():
         #     print(data[item]['name'].split())
 
     # print(result)
-
 if __name__ == "__main__":
     notify_dates()
+    s = "Last checked at: {}". format(dt.datetime.now().strftime("%H:%M:%S    %d-%B"))
+    print(s) 

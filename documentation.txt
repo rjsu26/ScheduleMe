@@ -142,6 +142,8 @@ The cronjob will look like this:
 youtube_scraping.py:
 ---------------------------------
 
+    *Update 17 June 2020: Youtube removes category section from its website. Hence this file will always return 0. All categorisation programs will treat youtube as a separate category with its separate time quota.* 
+
 Whenever a youtube activity is detected, we need to find which category the video belongs to. This python program will scrape that youtube page to extract the category from its html. 
 
 What are categories?
@@ -159,3 +161,18 @@ Methods:
 -------------------------------------------------------------------------------------
 
 
+toDo.py:
+---------------------------------------
+
+Objective: Make a function to add task along with options to mark them as complete/incomplete whenever one wants.  
+
+Working:
+Assuming all tasks will be stored in a file named toDo.json as a dictionary of dates. Each date will correcpond tasks having deadline at that particular date as a list of tuples where a tuple has task name and second position will have 0 or 1(0=incomplete, 1= complete)
+
+Methods:
+    1. read_tasks():
+        Opens the ToDo file and reads all the todos from current date's list. 
+    
+    2. add_tasks():
+        First, used read_tasks() to display all the available todos to let user know all pre-existing entries. 
+    

@@ -1,10 +1,10 @@
 """ Program to read all history from firefox in the system and use their frequency count for categorization purpose. To be used as cron job set to once every month."""
 
 """ 
-Format of data in HISTORY_FILE:
+Format of data in HISTORY_FILE(which only has uncategorised data):
 {
-    "websites" : {
-        "mozilla":{"sites":["support.mozilla.com", "www.mozilla.com"], "count":3}
+    "website" : {
+        "mozilla":{"site":["support.mozilla.com", "www.mozilla.com"], "count":19}
     },
     "offline":{"totem":7, "code":31}
 }
@@ -25,47 +25,34 @@ Categories:
     1. Academic : Materials related to academics
     2. Non-Academic : Anything which is not exactly academic but neither entertainment like news, howto tutorials, blogging, Messaging, etc.
     3. Entertainment : Activities like music, videos, adult, etc.
-    4. Miscellaneous : Activities like terminal, calculator, file explorer, software and updates, etc which can't be clearly distinguished as academic, non-academic or entertainment.
+    4. Miscellaneous : Activities like youtube, terminal, calculator, file explorer, software and updates, etc which can't be clearly distinguished as academic, non-academic or entertainment.
 
  """
 
 # name of the file where processed history is kept
-HISTORY_FILE = "browser_history_log2.json" # remove 2 later on
-CATEGORIZATION_FILE = "categorized.json"
+HISTORY_FILE = "/home/raj/Documents/scheduler/browser_history_log3.json" # remove 2 later on
+CATEGORIZATION_FILE = "/home/raj/Documents/scheduler/categorized.json"
 
 def main():
     """ Main function to gather data from firefox history and system applications and prompt user to categorise them. There are 2 separate cases: one that would run during fresh installation and the other that would run at all other instances. """
     try: # to catch keyboard interrupt 
+            
+        categorised_data = {}
+        categorised_data["website"] = {} # domain to category manpping
+        categorised_data["offline"] = {}
+        categorised_data["website"]["youtube"] = 4
+        categorised_data["website"]["private"] = 3
+        # scan for all history in firefox
+        data= {"website":{}, "offline":{}}
+        do_offline = True  # set to "do" for installation time running.
+
         try: # On normal days, when its not installation procedure, simply process the HISTORY_FILE which has been updated everyday by timer.json.
             categorised_data = json.load(open(CATEGORIZATION_FILE, "r+"))
             data = json.load(open(HISTORY_FILE, "r"))
             do_offline = False # do_offline parameter decides if categorization for offline application is to be done or not. Set to "don't do" here since its not installation-run.
         except Exception as e: # On first installation, create CATEGORIZATION_FILE and read all of history
             # print(e)
-            categorised_data = {}
-            categorised_data["websites"] = {} # domain to category manpping
-            categorised_data["offline"] = {}
-            categorised_data["websites"]["youtube"] = {
-                'Film & Animation' : 3,
-                'Autos & Vehicles' : 3,
-                'Music': 3,
-                'Pets & Animals': 3,
-                'Sports': 3,
-                'Travel & Events': 2,
-                'Gaming': 3,
-                'People & Blogs': 2,
-                'Comedy': 2,
-                'Entertainment': 3,
-                'News & Politics': 2,
-                'Howto & Style': 2,
-                'Education': 1,
-                'Science & Technology': 2,
-                'Nonprofits & Activism': 2
-            }
-            # scan for all history in firefox
-            data= {}
-            data["websites"] = firefox_history_scan(categorised_data)
-            do_offline = True  # set to "do" for installation time running.
+            data["website"] = firefox_history_scan(categorised_data)
 
         finally:
             do_the_categorization(data, categorised_data, do_offline) # Ask the user to categorize and save all the changes into the data and categorised_data dictionary.
@@ -84,13 +71,13 @@ def  do_the_categorization(data, categorised_data, do_offline):
     print("\n\n[!] Starting categorising new 'Website' data in descending order.\n\n")
     time.sleep(1)
 
-    # "websites" categorisation
-    for k,v in sorted(data["websites"].items(), key = lambda x: x[1]["count"], reverse=True):
+    # "website" categorisation
+    for k,v in sorted(data["website"].items(), key = lambda x: x[1]["count"], reverse=True):
         os.system("clear")
-        if categorised_data["websites"].get(k)==None: # if domain not categorised till now
+        if categorised_data["website"].get(k)==None: # if domain not categorised till now
             print("Domain : {}".format(k))
             print("Sites : ")
-            for site in v["sites"]:
+            for site in v["site"]:
                 print(" -   ", site)
             print("\n\n Frequency use: ", v["count"])
 
@@ -103,21 +90,43 @@ def  do_the_categorization(data, categorised_data, do_offline):
             elif choice==5:
                 continue
             else:
-                categorised_data["websites"][k]=choice 
+                categorised_data["website"][k]=choice 
 
-        data.pop(k,None) # remove the domain <k> from data dictionary if present, otherwise return None
+        data["website"].pop(k,None) # remove the domain <k> from data dictionary if present, otherwise return None
 
+    applications_dict = find_all_applications()
 
     if do_offline==False: # do_offline will be false when its not the installation-time run.
         """ access "offline" activities from data dictionary. """ 
-        print("I was here")
+        # print("I was here")
+        print("\n\n[!][!] Starting offline categorisation..\n\n")
+        time.sleep(1)
+        for k,v in sorted(data.items(), key = lambda x: x[1] , reverse=True):
+            os.system("clear")
+            if k not in categorised_data["offline"]:
+                print("Process: ", )
+                if k in applications_dict:
+                    print(applications_dict[k])
+                else:
+                    print(k)
+                
+                print("\n\n Frequency use: ", v)
+                print()
+                print(menu)
+                choice = get_choice()
+                if choice==6:
+                    break
+                elif choice==5:
+                    continue
+                else:
+                    categorised_data["offline"][k]=choice 
 
+            data["offline"].pop(k,None)
 
     else:    
         # "Offline" categorisation
         print("\n\n[!] Starting categorising new 'Offline' applications. \n\nJust select all those which you recognise and use frequently. You may do it later, but doing it now would increase the accuracy of the scheduler..\n\n")
         
-        applications_dict = find_all_applications()
         # time.sleep(1)
 
         for k,v in applications_dict.items():
@@ -218,13 +227,13 @@ def firefox_history_scan(categorised_data):
                         domain = url_object.domain
                         if domain.strip() != "":
                             domain = domain.lower()
-                            if categorised_data["websites"].get(domain)==None: # domain is not yet categorised
-                                prev_data[domain] = prev_data.get(domain, dict())
-                                prev_data[domain]["sites"] = prev_data[domain].get("sites", list())
-                                if main_url not in prev_data[domain]["sites"]:
-                                    prev_data[domain]["sites"].append(main_url)
-                                    prev_data[domain]["count"] = (
-                                        prev_data[domain].get("count", 0) + count
+                            if categorised_data["website"].get(domain)==None: # domain is not yet categorised
+                                prev_data["website"][domain] = prev_data.get(domain, dict())
+                                prev_data["website"][domain]["site"] = prev_data[domain].get("site", list())
+                                if main_url not in prev_data["website"][domain]["site"]:
+                                    prev_data["website"][domain]["site"].append(main_url)
+                                    prev_data["website"][domain]["count"] = (
+                                        prev_data["website"][domain].get("count", 0) + count
                                     )
                     
                     # Now remove the backup file after the work is complete

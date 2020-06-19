@@ -80,6 +80,7 @@ def add_birthdays_to_dict():
     # print(birthday_list)
     with open(filename , "w+") as fp:
         json.dump(data, fp, indent=4)
+        print("Birthday added successfully")
         # fp.write(json.dumps(birthday_list, indent=4)
     # except Exceptions as e :
     #     return "Some error occured"

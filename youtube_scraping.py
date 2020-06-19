@@ -24,26 +24,29 @@ Category_index = {
 # fail_count = 0 #if fail count ==3 break and return false.
 
 def find_category(link):
+    """ Not working now. Always returns 0 """
+
     """ Returns the category of video being played in youtube. Returns 0 when no category is found for any reason."""
+    return 0
     try:
         url = link 
         source= requests.get(url).text
         soup=BeautifulSoup(source,'lxml')
         if soup==None:
-            return "0"
+            return "None"
         category = soup.findAll('ul', class_="content watch-info-tag-list")
         if category==[]:
-            return "0"
+            return "No Category"
         category = category[0].text.strip(' \n')
         # print(category)
         return category
     except Exception as e:
         # print(e)
-        return "0"
+        return "Error"
 
 if __name__=="__main__":
-    link = "https://www.youtube.com/"
-    for _ in range(100):
+    link = "https://www.youtube.com/watch?v=KK4a3HWZRDc"
+    for _ in range(10):
         s = time.time()
         print(find_category(link))
         print(time.time()-s)

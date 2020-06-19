@@ -10,28 +10,60 @@ import processreader
 from matplotlib import pyplot as plt
 from timeit import timeit
 from tldextract import extract
-
+# from youtube_scraping import find_category
 
 os.environ["DISPLAY"] = ":0.0"
 os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
 
-# time.sleep(4)
+CATEGORIZATION_FILE = "/home/raj/Documents/scheduler/categorized.json"
+HISTORY_FILE = "/home/raj/Documents/scheduler/browser_history_log_3.json"
+
+""" 
+Format of timer.json(which has data for every day):
+{
+    "website": {site1: 2, site2: 8, site3: 1, ...},
+    "offline" : {activity1:2, activity2:1, activity3:7, ...}
+}
+ """
+
+""" 
+Format of timer.json(which has data for every day):
+{
+    "1": 14,
+    "2":98,
+    "3":31,
+    "4":16,
+    "uncategorised":{ "website": {
+                                            domain: {
+                                                "site": [ site1, site2, ..],
+                                                "count" : 4
+                                                          }
+                                                }
+                                            },
+                                "offline" : {
+                                                "activity1" : 17,
+                                                "activity2" : 8,
+                                                 },
+                                "total": 29 (4+17+8)
+                                }
+    "last_updated":"13:45:03"
+}
+ """
+
 
 def display(dic, yesterday):
-    """ Function to display total time consumed in all the apps as bar chart """
+    """ Function to display total time consumed in all the categories as bar chart """
 
-    x, y = [], []
+    # Load the categorisation file, to find each activity or domain mapped to their respective category.
+    x, y = ["Acad.", "Non-Acad.", "Entert.", "Misc.","Unknown"], []
     for k, v in dic.items():
-        if k == "last_updated" or k=="browser" or k=="tab" :
-            continue
-        # print(k, v)
-        x.append(k)
-        y.append(v)
+        if k!="last_updated":
+            y.append(v)
     # print(x,y)
     pos = np.arange(len(x))
     plt.bar(pos, y, color="blue", edgecolor="black")
     plt.xticks(pos, x)
-    plt.xlabel("Activity", fontsize=10)
+    # plt.xlabel("Activity", fontsize=10)
     plt.ylabel("Time(mins)", fontsize=10)
     plt.title("{} 's Laptop activity distribution".format(yesterday), fontsize=20)
     # plt.show()
@@ -48,50 +80,85 @@ def display(dic, yesterday):
 get = lambda cmd: subprocess.check_output(cmd).decode("utf-8").strip()
 
 def browser_activity():
-    """ Returns the website name which is active in the firefox browser. Sample output : "facebook" """
+    """ Returns the website name which is active in the firefox browser. Sample output : "www.facebook.com/video?=vxyaz3r4" """
     tab_url = ""
     # print(subprocess.check_output(["xdotool" ,"getactivewindow", "getwindowname"]).decode("utf-8"))
     current_title = "-".join(subprocess.check_output(["xdotool" ,"getactivewindow", "getwindowname"]).decode("utf-8").strip().split("-")[:-1]).strip()
     if current_title !="":
         # print(current_title)
         data_dic = processreader.fetch_links_firefox()
-        if data_dic.get(current_title)!=None: # checking for worse case if title not present in dictionary
+        if data_dic.get(current_title)==None: #Either the user is using private browser or firefox database is not yet updated.
+            time.sleep(30) # wait for 30 seconds and re-fetch the firefox database.
+            data_dic = processreader.fetch_links_firefox()
+
+        if data_dic.get(current_title)!=None: # if Found return the 
             my_link = data_dic[current_title]
-            tab_url = extract(my_link).domain
-            if tab_url.strip()!="":
-                return tab_url.lower()
+            # tab_url = extract(my_link).domain
+            if my_link.strip()!="":
+                return my_link
+
+    return None # return None if any of the above condition fails. Indicates either db-error or private window. 
 
 def do_the_work():
     today_date = date.today().strftime("%d-%m-%Y")
     update_time = datetime.now().time().strftime("%H:%M:%S")
+    categorisation_data = json.load(open(CATEGORIZATION_FILE,"r")) # dictionary having all categorized data
 
-    timer_dic = {}
     try:    
-        timer_dic = json.load(open("/home/raj/Documents/scheduler/timer.json", "r"))
+        timer_dic = json.load(open("/home/raj/Documents/scheduler/timer.json", "r")) #Dictionary with all daily activity data.
     except :
-        pass
+        timer_dic = {}
 
     if timer_dic.get(today_date) == None: # When about to create a new entry on today's date
-        yesterday = (date.today() - timedelta(days=1)).strftime("%d-%m-%Y")
-        if timer_dic.get(yesterday) != None: # if previous day's data is avaliable
-            # open the history log file and increment count of all websites present under "browser" key. E.g history["springer"]++,  etc. 
-            perm_dic={}
-            try:
-                perm_dic = json.load(open("/home/raj/Documents/scheduler/browser_history_log.json", "r"))
-            except : # File not yet created or deleted by external agent
-                pass        
-            if timer_dic[yesterday].get("browser")!=None:
-                for k in timer_dic[yesterday]["browser"].keys():
-                    if k!="private":
-                        perm_dic[k] = perm_dic.get(k, {})
-                        perm_dic[k]["count"] = perm_dic[k].get("count",0) + (int)(timer_dic[yesterday]["browser"].get(k,0)/5)
 
-            json.dump(perm_dic, open("/home/raj/Documents/scheduler/browser_history_log.json", "w+"))
+        previous_date = (date.today() - timedelta(days=1)).strftime("%d-%m-%Y")
+        i=2
+        # Find the last accessible date within 1 month from today_date.
+        while timer_dic.get(previous_date) == None and i<=30: # 
+            previous_date = (date.today() - timedelta(days=i)).strftime("%d-%m-%Y")
+            i+=1
+        
+        if timer_dic.get(previous_date) !=None: # if any date withing 30 days found in database then ..
 
-            display(timer_dic[yesterday], yesterday)
-        timer_dic[today_date] = {}
+            reference_dict = timer_dic[previous_date]
+            
+            
+            # Add uncategorised activities into the browser_history_log  
+            if reference_dict["uncategorised"]["total"]!=0:
+                try:
+                    perm_dic = json.load(open(HISTORY_FILE, "r")) # dictionary having browser history data
 
+                except : # File not yet created or deleted by external agent
+                    perm_dic={}
+                    perm_dic["website"] = {}
+                    perm_dic["offline"] = {}
+                # For all uncategorised "website" 
+                for my_domain in reference_dict["uncategorised"]["website"]:
+                    perm_dic["website"][my_domain] = perm_dic["website"].get(my_domain,{})
+                    perm_dic["website"][my_domain]["sites"] = perm_dic["website"][my_domain].get("sites", [])
+
+                    perm_dic["website"][my_domain]["sites"].extend(reference_dict["uncategorised"]["website"][my_domain]["site"])
+                    # removing all duplicates
+                    perm_dic["website"][my_domain]["sites"] = list(set(perm_dic["website"][my_domain]["sites"])) 
+                    perm_dic["website"][my_domain]["count"] = perm_dic["website"][my_domain].get("count",0) + 1
+
+                for activity, cnt in reference_dict["uncategorised"]["offline"].items():
+                    perm_dic["offline"][activity] = perm_dic["offline"].get(activity,0) + cnt 
+
+                json.dump(perm_dic, open(HISTORY_FILE, "w+"))
+
+            # Send data to display function
+            reference_dict["uncategorised"] = reference_dict["uncategorised"]["total"]
+            display(reference_dict, previous_date)
+        
+        temp_dictionary={"1":0,"2":0,"3":0,"4":0} # temporary dictionary to keep all categorisation 
+        temp_dictionary["uncategorised"]= {"website":{}, "offline":{}, "total":0}
+       
+        timer_dic[today_date] = temp_dictionary
+
+    
     # print(dic)
+
     try:
         p_id = (
             subprocess.check_output(["xdotool", "getactivewindow", "getwindowpid"])
@@ -113,28 +180,44 @@ def do_the_work():
             # else if p_name=="chrome":
             # more options for browsers like safari, chromium, etc.
 
-            timer_dic[today_date]["browser"] = timer_dic[today_date].get("browser",{}) 
             if tab!=None and  tab.strip()!="":
-                timer_dic[today_date]["browser"][tab] = timer_dic[today_date]["browser"].get(tab,0) + 5
-            else:
-                timer_dic[today_date]["browser"]["private"] = timer_dic[today_date]["browser"].get("private",0) + 5
+                dom = extract(tab).domain
+                print("Last activity was ", dom)
+                if dom=="youtube":
+                    timer_dic[today_date]["4"] +=  5
+                elif dom in categorisation_data["websites"]:
+                    timer_dic[today_date][str(categorisation_data["websites"][dom])] += 5
+                else:
+                    timer_dic[today_date]["uncategorised"]["website"][dom]= timer_dic[today_date]["uncategorised"]["website"].get(dom,{})
+
+                    timer_dic[today_date]["uncategorised"]["website"][dom]["site"] = timer_dic[today_date]["uncategorised"]["website"][dom].get("site", [])
+
+                    timer_dic[today_date]["uncategorised"]["website"][dom]["site"].append(tab)
+
+                    timer_dic[today_date]["uncategorised"]["total"] += 5 
+            else: # private tab in entertainment
+                print("Some unloaded/private tab")
+                timer_dic[today_date]["3"] +=  5
                 # os.system("notify-send  -u critical private")
 
-
         else:
-            timer_dic[today_date][p_name] = timer_dic[today_date].get(p_name, 0) + 5
+            print("Last activity ", p_name)
+            if p_name in categorisation_data["offline"]:
+                timer_dic[today_date][str(categorisation_data["offline"][p_name])] += 5
+            else:
+                timer_dic[today_date]["uncategorised"]["offline"][p_name] += 5
+                timer_dic[today_date]["uncategorised"]["total"]+= 5
         
 
         timer_dic[today_date]["last_updated"] = update_time
         json.dump(timer_dic, open("/home/raj/Documents/scheduler/timer.json", "w+"))
         return True # success
     except Exception as e:
-        sys.stderr.write("ERROR", e)
+        print(e)
         return False #failure
     
 if __name__ == "__main__":
-    # print(timeit(do_the_work,number = 1000))
-    # time.sleep(1)
+    # time.sleep(3)
     status = do_the_work()
     count = 1
     while status!= True: # until success retry
