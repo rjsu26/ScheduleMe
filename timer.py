@@ -17,6 +17,8 @@ os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
 
 CATEGORIZATION_FILE = "/home/raj/Documents/scheduler/categorized.json"
 HISTORY_FILE = "/home/raj/Documents/scheduler/browser_history_log_3.json"
+DAILY_ACTIVITY_PATH= "/home/raj/Documents/scheduler/daily_activity/"
+
 
 """ 
 Format of timer.json(which has data for every day):
@@ -67,9 +69,12 @@ def display(dic, yesterday):
     plt.ylabel("Time(mins)", fontsize=10)
     plt.title("{} 's Laptop activity distribution".format(yesterday), fontsize=20)
     # plt.show()
-    plt.savefig( "/home/raj/Documents/scheduler/daily_activity/"+str(yesterday)+".png", bbox_inches='tight')
+    if not os.path.exists(DAILY_ACTIVITY_PATH):
+        os.makedirs(DAILY_ACTIVITY_PATH)
+
+    plt.savefig(DAILY_ACTIVITY_PATH +str(yesterday)+".png", bbox_inches='tight')
     try:
-        img = Image.open("/home/raj/Documents/scheduler/daily_activity/"+str(yesterday)+".png")
+        img = Image.open(DAILY_ACTIVITY_PATH+str(yesterday)+".png")
         img.show()
     except:
         pass 
@@ -101,7 +106,9 @@ def browser_activity():
 
 def do_the_work():
     today_date = date.today().strftime("%d-%m-%Y")
+    print("Updation date: ", today_date)
     update_time = datetime.now().time().strftime("%H:%M:%S")
+    print("Updation time: ", update_time)
     categorisation_data = json.load(open(CATEGORIZATION_FILE,"r")) # dictionary having all categorized data
 
     try:    
@@ -118,7 +125,7 @@ def do_the_work():
             previous_date = (date.today() - timedelta(days=i)).strftime("%d-%m-%Y")
             i+=1
         
-        if timer_dic.get(previous_date) !=None: # if any date withing 30 days found in database then ..
+        if timer_dic.get(previous_date) !=None: # if any date withing 30 days found in database which isn't processed yet.
 
             reference_dict = timer_dic[previous_date]
             
@@ -147,9 +154,10 @@ def do_the_work():
 
                 json.dump(perm_dic, open(HISTORY_FILE, "w+"))
 
-            # Send data to display function
             reference_dict["uncategorised"] = reference_dict["uncategorised"]["total"]
-            display(reference_dict, previous_date)
+            if os.path.isfile("/home/raj/Documents/scheduler/daily_activity/"+str(previous_date)+".png")==False:
+            # Send data to display function
+                display(reference_dict, previous_date)
         
         temp_dictionary={"1":0,"2":0,"3":0,"4":0} # temporary dictionary to keep all categorisation 
         temp_dictionary["uncategorised"]= {"website":{}, "offline":{}, "total":0}
@@ -184,7 +192,7 @@ def do_the_work():
                 dom = extract(tab).domain
                 print("Last activity was ", dom)
                 if dom=="youtube":
-                    timer_dic[today_date]["4"] +=  5
+                    timer_dic[today_date]["4"] +=  5 # add to miscalleneous
                 elif dom in categorisation_data["websites"]:
                     timer_dic[today_date][str(categorisation_data["websites"][dom])] += 5
                 else:
@@ -219,10 +227,10 @@ def do_the_work():
 if __name__ == "__main__":
     # time.sleep(3)
     status = do_the_work()
-    count = 1
-    while status!= True: # until success retry
-        time.sleep(1) # sleep for 1 sec and expect the same error to not occur again
-        status = do_the_work()
-        count+=1
-        if count ==10: # try only 10 times at max
-            break 
+    # count = 1
+    # while status!= True: # until success retry
+    #     time.sleep(1) # sleep for 1 sec and expect the same error to not occur again
+    #     status = do_the_work()
+    #     count+=1
+    #     if count ==10: # try only 10 times at max
+    #         break 

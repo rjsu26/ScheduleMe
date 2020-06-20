@@ -143,3 +143,6 @@ dmypy.json
 cython_debug/
 
 
+weekly_task_reports/
+*.json
+*_err.txt

@@ -166,13 +166,53 @@ toDo.py:
 
 Objective: Make a function to add task along with options to mark them as complete/incomplete whenever one wants.  
 
+This program will work only when manually called by the user. No cronjob will be assigned to it.
+
 Working:
-Assuming all tasks will be stored in a file named toDo.json as a dictionary of dates. Each date will correcpond tasks having deadline at that particular date as a list of tuples where a tuple has task name and second position will have 0 or 1(0=incomplete, 1= complete)
+Assuming all tasks will be stored in a file named toDo.json as a dictionary of dates. Each date will correcpond tasks having deadline at that particular date as a list of list where a tuple has task name and second position will have 0 or 1(0=incomplete, 1= complete)
 
 Methods:
     1. read_tasks():
-        Opens the ToDo file and reads all the todos from current date's list. 
+        Given a date, display all its todos, if exists, and also show whether its completed or not.
     
     2. add_tasks():
-        First, used read_tasks() to display all the available todos to let user know all pre-existing entries. 
+        First, depending upon user's choice, display current date's tasks or all pending tasks untill 30 days from now.  
+        Then, until the user wants take input the task entry along with its deadline. The frontend limit to deadline is 30 days from today, although any number of days can be given.  
+        The task will be put into the data as key value pair where the deadline date will act as the key. E.g : "19-07-2020":[["walk the dog,0], ["Make the mini project",0]]
+
+        Write the file and give success message.
     
+    3. mark_tasks():
+        """ List all pending task, and prompt user which task to mark as complete. """
+
+        Display all upcoming incomplete tasks corresponding to their deadline and prompt user to mark one or more of the tasks as completed. Those selected tasks will be marked as 1 from 0, which indicates completed. 
+
+--------------------------------------------------------------------------
+
+check_toDo.py :
+--------------------------------
+
+This program has the primary task of counting total number of completed and incompleted tasks after a deadline is over. 
+
+To be used in as cronjob set to @daily 
+
+Method:
+    * check_delay_and_update()
+    """ Check whether all tasks for previous date is complete or not. If not, then prompt user whether to extend it or discard it. Update the date's entry with [complete, incomplete count] format. Both delayed or cancelled tasks would be counted in incomplete count anyways. """
+
+        This program will be triggered by cronjob everyday and a pop up will be made if any task is remaining. The user can choose if s/he wants to permanently leave that incomplete task or postpone it to some forward date. 
+
+        The task list will be converted to a list of size 2 having only # of completed and # of incomplete tasks. 
+        E.g. from "18-06-2020":[["task1", 1], ["task2",0], ["task3,0]] to "18-06-2020":[1, 2] i.e. 1 complete and 2 incomplete .
+
+        Although many sources claimed that such a pop up using cronjob is not possible, it is observed that a terminal emulator called xterm can be used for this purpose using the command :
+          $  xterm -title "To Do reminder" -fa monaco -fs 11 -bg black -fg green /home/raj/Documents/scheduler/check_toDos.py
+
+
+ -----------------------------------------------------------------------------------
+
+ 
+generate_task_completition_report.py:
+-------------------------------------------------
+
+Program to iterate last 7 data of toDo completition and generate and display a bar chart representing that data 
