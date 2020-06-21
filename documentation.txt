@@ -215,4 +215,21 @@ Method:
 generate_task_completition_report.py:
 -------------------------------------------------
 
-Program to iterate last 7 data of toDo completition and generate and display a bar chart representing that data 
+Program to iterate last 7 data of toDo completition and generate and display a bar chart representing that data.
+
+This program will be put into cronjob @weekly i.e. the program will be triggered once every week to generate a consistency plot for past 7 data points. 
+
+Methods:
+    1. generate_graph():
+    """ Function to take list of dates along with corresponding completed and incompleted tasks count and represent them in a stacked bar chart. """
+
+        @Input: a dictionary of dates and count of tasks not/done which is to be plotted.
+        @Output: To generate a bar plot out of input data, save it to a given folder, and also display it. 
+
+        Using matplotlib, make a bar plot containing 2 subplots i.e. 1 bar for completed and 1 bar for incompleted. After plot is generated, the given directory is checked for existence, if not then the directory is made and then the plot is saved inside the folder, and then a display is given using the PIL module. 
+
+    2. get_data():
+    """ Function to get at most 7 data points from the data file and send it for plotting to the generate_graph function."""
+
+        Starting from the yesterday's date, scan for atmost 7 data points by searching through past 30 days in the data file. If not even a single data is found, then exit, else send the data for plotting. 
+
