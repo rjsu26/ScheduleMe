@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 """ Program to read all history from firefox in the system and use their frequency count for categorization purpose. To be used as cron job set to once every month."""
 
 """ 
@@ -18,8 +20,8 @@ import glob
 import pprint
 import json
 import time
-import datetime
-
+from datetime import date, timedelta
+from config import HISTORY_FILE, CATEGORIZATION_FILE
 menu = """ 
 Categories: 
     1. Academic : Materials related to academics
@@ -29,9 +31,6 @@ Categories:
 
  """
 
-# name of the file where processed history is kept
-HISTORY_FILE = "/home/raj/Documents/scheduler/browser_history_log3.json" # remove 2 later on
-CATEGORIZATION_FILE = "/home/raj/Documents/scheduler/categorized.json"
 
 def main():
     """ Main function to gather data from firefox history and system applications and prompt user to categorise them. There are 2 separate cases: one that would run during fresh installation and the other that would run at all other instances. """
@@ -59,6 +58,8 @@ def main():
     
     except KeyboardInterrupt:
         print("Interrupted!! Terminating..")
+    except Exception as e:
+        print(e)
     
     finally:
         json.dump(data, open(HISTORY_FILE, "w+"))
@@ -66,7 +67,10 @@ def main():
 
 
 def  do_the_categorization(data, categorised_data, do_offline):
-    """ Using the un-classified data and previously categorised data, prompt the user for top most visited unclassified websites and then put them inside categorised data after  removing it from the unclassified data. """
+    """ Using the un-classified data and previously categorised data, prompt the user for top most visited unclassified websites and then put them inside categorised data after  removing it from the unclassified data. 
+    
+    Add an last_updation_date field before exiting.
+    """
     
     print("\n\n[!] Starting categorising new 'Website' data in descending order.\n\n")
     time.sleep(1)
@@ -74,10 +78,10 @@ def  do_the_categorization(data, categorised_data, do_offline):
     # "website" categorisation
     for k,v in sorted(data["website"].items(), key = lambda x: x[1]["count"], reverse=True):
         os.system("clear")
-        if categorised_data["website"].get(k)==None: # if domain not categorised till now
+        if categorised_data["websites"].get(k)==None: # if domain not categorised till now
             print("Domain : {}".format(k))
             print("Sites : ")
-            for site in v["site"]:
+            for site in v["sites"]:
                 print(" -   ", site)
             print("\n\n Frequency use: ", v["count"])
 
@@ -90,7 +94,7 @@ def  do_the_categorization(data, categorised_data, do_offline):
             elif choice==5:
                 continue
             else:
-                categorised_data["website"][k]=choice 
+                categorised_data["websites"][k]=choice 
 
         data["website"].pop(k,None) # remove the domain <k> from data dictionary if present, otherwise return None
 
@@ -101,7 +105,7 @@ def  do_the_categorization(data, categorised_data, do_offline):
         # print("I was here")
         print("\n\n[!][!] Starting offline categorisation..\n\n")
         time.sleep(1)
-        for k,v in sorted(data.items(), key = lambda x: x[1] , reverse=True):
+        for k,v in sorted(data["offline"].items(), key = lambda x: x[1] , reverse=True):
             os.system("clear")
             if k not in categorised_data["offline"]:
                 print("Process: ", )
@@ -142,6 +146,10 @@ def  do_the_categorization(data, categorised_data, do_offline):
                     continue
                 else:
                     categorised_data["offline"][k]=choice
+
+    today_date = date.today().strftime("%d-%m-%Y")
+    data["last_updated"] = today_date
+    return
 
 def get_choice():
     """ Ask user to input any number between 1 to 6(both inclusive) and returns the choice when found valid. """

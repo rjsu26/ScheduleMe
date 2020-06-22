@@ -1,9 +1,11 @@
+#! /usr/bin/env python
+
 import datetime as dt
 import json
 import os
 from os.path import isfile, join
+from config import BIRTHDAY_FILE
 
-filename = 'birthday_data.json'
 """ If multiple names exist on the same date, they will be saved in the same string separated by ' '. E.g.{ "06-03": "raj1 raj2"}.  """
 
 def get_valid_date(prompt):
@@ -42,7 +44,7 @@ def add_birthdays_to_dict():
     
     # Check if another such date pre exists
     try:
-        data = json.load(open(filename, 'r'))
+        data = json.load(open(BIRTHDAY_FILE, 'r'))
         while True:
             if data.get(date1)!=None:
                 choice = input("There already exists an entry for the date "+ date1+ " with name "+ data[date1]['name']+ ". Do you want to add another?(y/n) ")
@@ -78,7 +80,7 @@ def add_birthdays_to_dict():
     
     # try:
     # print(birthday_list)
-    with open(filename , "w+") as fp:
+    with open(BIRTHDAY_FILE , "w+") as fp:
         json.dump(data, fp, indent=4)
         print("Birthday added successfully")
         # fp.write(json.dumps(birthday_list, indent=4)

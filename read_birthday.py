@@ -5,11 +5,10 @@
 import datetime as dt
 import os
 import json
+from config import BIRTHDAY_FILE
 
 os.environ["DISPLAY"] = ":0.0"
 os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
-
-filename = 'birthday_data.json'
 
 def message(title, message):
   os.system('notify-send  -u low "'+title+'" "'+message+'"')
@@ -17,7 +16,7 @@ def message(title, message):
 def notify_dates():
     current_date = dt.datetime.today()
 
-    with open(filename, 'r') as check_file:
+    with open(BIRTHDAY_FILE, 'r') as check_file:
         data = json.load(check_file)
         # print(data)
         for i in range(8): # <i> will be used as timedelta ranging from 0 to 7 days. 7th day is intentially left to be overlapping because it might happen that the 7th day had someone's birthday but due to no use of PC of the 7th day, the cronjob couldn't work that day. It would lead to failure of the intended cause.

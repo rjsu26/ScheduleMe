@@ -187,6 +187,13 @@ Methods:
 
         Display all upcoming incomplete tasks corresponding to their deadline and prompt user to mark one or more of the tasks as completed. Those selected tasks will be marked as 1 from 0, which indicates completed. 
 
+To run these programs as commands from the terminal from any directory in general, we use a technique called as linking with a technical word called "symlinks". Here, we create a link between a keyword and any program we wanna run. This keyword whenever written from a recognisable path in the terminal, will directly call the associated program. To make the link recognisable by bash, we make a new directory named "bin" in root directory, and give its path to the PATH environment variable via bashrc. This was, we create some commands to do the tasks:
+1. addtask : command to add an entry after displaying today's tasks .
+2. showtask : command to display all pending tasks 
+3. marktask : command to mark one or more tasks as completed from all pending tasks. 
+
+references: https://stackoverflow.com/questions/6967331/how-do-i-install-a-script-to-run-anywhere-from-the-command-line
+
 --------------------------------------------------------------------------
 
 check_toDo.py :
@@ -209,10 +216,11 @@ Method:
           $  xterm -title "To Do reminder" -fa monaco -fs 11 -bg black -fg green /home/raj/Documents/scheduler/check_toDos.py
 
 
+
  -----------------------------------------------------------------------------------
 
  
-generate_task_completition_report.py:
+task_report.py:
 -------------------------------------------------
 
 Program to iterate last 7 data of toDo completition and generate and display a bar chart representing that data.

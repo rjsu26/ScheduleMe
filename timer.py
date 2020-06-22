@@ -10,14 +10,11 @@ import processreader
 from matplotlib import pyplot as plt
 from timeit import timeit
 from tldextract import extract
+from config import BIRTHDAY_FILE, CATEGORIZATION_FILE, HISTORY_FILE, DAILY_ACTIVITY_PATH
 # from youtube_scraping import find_category
 
 os.environ["DISPLAY"] = ":0.0"
 os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
-
-CATEGORIZATION_FILE = "/home/raj/Documents/scheduler/categorized.json"
-HISTORY_FILE = "/home/raj/Documents/scheduler/browser_history_log_3.json"
-DAILY_ACTIVITY_PATH= "/home/raj/Documents/scheduler/daily_activity/"
 
 
 """ 
@@ -191,17 +188,29 @@ def do_the_work():
             if tab!=None and  tab.strip()!="":
                 dom = extract(tab).domain
                 print("Last activity was ", dom)
-                if dom=="youtube":
-                    timer_dic[today_date]["4"] +=  5 # add to miscalleneous
+                
+                if dom=="google": # take cases for categorisation
+                    sub =  extract(tab).subdomain
+                    if sub=="www": # can be all of the 4 categories. 
+                        timer_dic[today_date]["1"] +=  2 
+                        timer_dic[today_date]["2"] +=  2  
+                        timer_dic[today_date]["4"] +=  1 
+                    else: # most subdomains of google are academic while others are non-academic.
+                        timer_dic[today_date]["1"] +=  3 
+                        timer_dic[today_date]["2"] +=  2 
+                
+                elif dom=="youtube":
+                        timer_dic[today_date]["2"] +=  1 
+                        timer_dic[today_date]["3"] +=  2 
+                        timer_dic[today_date]["4"] +=  2 
+
                 elif dom in categorisation_data["websites"]:
                     timer_dic[today_date][str(categorisation_data["websites"][dom])] += 5
+                
                 else:
                     timer_dic[today_date]["uncategorised"]["website"][dom]= timer_dic[today_date]["uncategorised"]["website"].get(dom,{})
-
                     timer_dic[today_date]["uncategorised"]["website"][dom]["site"] = timer_dic[today_date]["uncategorised"]["website"][dom].get("site", [])
-
                     timer_dic[today_date]["uncategorised"]["website"][dom]["site"].append(tab)
-
                     timer_dic[today_date]["uncategorised"]["total"] += 5 
             else: # private tab in entertainment
                 print("Some unloaded/private tab")

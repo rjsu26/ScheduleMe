@@ -3,8 +3,8 @@ import os
 import json
 from datetime import date, timedelta 
 from show_tasks import read_tasks
+from config import TODO_FILE
 
-TODO_FILE = "/home/raj/Documents/scheduler/toDo.json"
 
 """ {
     "11-05-2020":[3,8], // past date converted to new format [completed count, incompleted/missed-deadline count]
@@ -61,6 +61,8 @@ def check_delay_and_update(data):
         print("KeyboardInterrupt")
     except Exception as e:
         print("Some error occured ", e)
+        input("Press anything to exit..")
+
         # print(e)
     finally:
         write_file(data)
@@ -115,5 +117,4 @@ if __name__ == "__main__":
         print("No tasks today")
     add_tasks()
 
-    input("Press anything to exit..")
-    os.system("clear")
+    # os.system("clear")

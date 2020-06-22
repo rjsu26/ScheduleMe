@@ -4,8 +4,8 @@
 import os 
 import json
 from datetime import date, timedelta 
-
-TODO_FILE = "/home/raj/Documents/scheduler/toDo.json"
+from task_report import get_data
+from config import TODO_FILE, SAVE_PATH
 
 def read_file():
     try:
@@ -45,20 +45,39 @@ def read_tasks(my_date, only_print_incomplete=False):
     
 
 if __name__ == "__main__":
-    today_date = date.today().strftime("%d-%m-%Y")
-    os.system("clear")
-    message = """ \t\t===============Today's tasks============== """
-    print(message)
-    c2 = int("0"+ input("\n-> Display today's tasks(0) or all remaining tasks(anything else)?: "))
-    if c2==0:
-        if read_tasks(today_date)==0:
-            print("No tasks for today..")
-    else :
-        # Assuming tasks are added only upto 30 days from today
-        for i in range(30):
-            new_date = (date.today() + timedelta(days=i)).strftime("%d-%m-%Y")
-            read_tasks(new_date, True)
+    try:
+        today_date = date.today().strftime("%d-%m-%Y")
+        os.system("clear")
+        message = """ \t\t===============Today's tasks============== """
+        print(message)
+        
+        # check if a report exists dated in less than 7 days from now.
+        flag = False 
+        for i in range(4):
+            new_date = (date.today() - timedelta(days=i)).strftime("%d-%m-%Y")
+            if os.path.exists(SAVE_PATH + str(new_date)+".png"): # if file exists
+                flag = True 
+                break 
+        
+        if flag==False: # no report in past week found 
+            get_data()
 
-    input("\nPress anything to exit..")
-    os.system("clear")
+        c2 = int("0"+ input("\n-> Display today's tasks(0) or all remaining tasks(anything else)?: "))
+        if c2==0:
+            if read_tasks(today_date)==0:
+                print("No tasks for today..")
+        else :
+            # Assuming tasks are added only upto 30 days from today
+            for i in range(10):
+                new_date = (date.today() + timedelta(days=i)).strftime("%d-%m-%Y")
+                read_tasks(new_date, True)
+        print()
+    except KeyboardInterrupt:
+        print("KeyBoardInterrupt")
+    except:
+        print("Some error")
+    # finally:
+        
+        # input("\nPress anything to exit..")
+        # os.system("clear")
 

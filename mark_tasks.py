@@ -3,8 +3,7 @@ import os
 import json
 from datetime import date, timedelta 
 from show_tasks import read_tasks
-
-TODO_FILE = "/home/raj/Documents/scheduler/toDo.json"
+from config import TODO_FILE
 
 def read_file():
     try:
