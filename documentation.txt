@@ -40,6 +40,17 @@ If the active window was not a browser, then we simply create an entry for that 
 The final updated database is dumped. 
 END of process.
 
+Update 24 June 2020:
+    Since this program is getting activated at every 5 mins and noting the activity, a person can evade an honest process logging by just changing windows or opened tabs to an academic one(to make his activity report look better) just when the clock is about to reach 5 minutes time i.e. 13:05, 13:10, 13:15, etc. 
+    To tackle this, we need to randomize the activation time of the program, where activity detection should be done at some random time. 
+    
+    Although we can add a random_time value in cronjob settings, there occurs a need to saving the previous random skip time so as to accurately log the process detected that very time. 
+
+    E.g. If I detect VS Code running at a lapse of 3 mins from expected time, then the total time attributed to VSCode should be 3 + remaining time from last detection(i.e. if last random lapse was of 2 mins, then remaining time was 5-2 = 3). 
+
+Update 1 July 2020:
+    Whenever the net unknown time of a day crosses 30% mark of all other categorised time(i.e. academic + non-academic ...), give a notification asking the user to run the categorisation program ( command : categorize) which will ask the user for categorisation data.
+
 Other side features in timer.py:
 
     1. Whenever a new day starts, first save the activity bar chart by accessing the timer data from the previous date and display it automatically as per activity name. 
@@ -241,3 +252,14 @@ Methods:
 
         Starting from the yesterday's date, scan for atmost 7 data points by searching through past 30 days in the data file. If not even a single data is found, then exit, else send the data for plotting. 
 
+-------------------------------------------------------------------------------------------------------------
+
+logging the cronjob data:
+-----------------------------------
+
+We need to have a single common log file where every task run on cron i.e. timer.py and chech_birthday.py will log their activities in the log file. A log file should have data of only present data, and all previous day's data should be cleared. 
+
+Using the path to log file: /home/raj/Documents/scheduler/cron.log , we ask the cron to redirect all the stdout and stderr to the log file. 
+
+To clear the log file at daily interval, we use anacron command:
+1          1       clear_logs  clear> /home/raj/Documents/scheduler/cron.log

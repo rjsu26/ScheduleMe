@@ -3,6 +3,7 @@ import json
 import os,sys
 import subprocess
 import time
+import random 
 from datetime import date, datetime, timedelta
 from PIL import Image
 import numpy as np
@@ -64,7 +65,7 @@ def display(dic, yesterday):
     plt.xticks(pos, x)
     # plt.xlabel("Activity", fontsize=10)
     plt.ylabel("Time(mins)", fontsize=10)
-    plt.title("{} 's Laptop activity distribution".format(yesterday), fontsize=20)
+    plt.title("{} activity : {} mins".format(yesterday, sum(y)), fontsize=20)
     # plt.show()
     if not os.path.exists(DAILY_ACTIVITY_PATH):
         os.makedirs(DAILY_ACTIVITY_PATH)
@@ -102,10 +103,13 @@ def browser_activity():
     return None # return None if any of the above condition fails. Indicates either db-error or private window. 
 
 def do_the_work():
+    # sleep for a random time between [0-4] mins 
+    random_minute = random.randint(0,4)
+    time.sleep(random_minute*60)
+
     today_date = date.today().strftime("%d-%m-%Y")
-    print("Updation date: ", today_date)
+    # print("Updation date: ", today_date)
     update_time = datetime.now().time().strftime("%H:%M:%S")
-    print("Updation time: ", update_time)
     categorisation_data = json.load(open(CATEGORIZATION_FILE,"r")) # dictionary having all categorized data
 
     try:    
@@ -144,7 +148,7 @@ def do_the_work():
                     perm_dic["website"][my_domain]["sites"].extend(reference_dict["uncategorised"]["website"][my_domain]["site"])
                     # removing all duplicates
                     perm_dic["website"][my_domain]["sites"] = list(set(perm_dic["website"][my_domain]["sites"])) 
-                    perm_dic["website"][my_domain]["count"] = perm_dic["website"][my_domain].get("count",0) + 1
+                    perm_dic["website"][my_domain]["count"] = perm_dic["website"][my_domain].get("count",0) + reference_dict["uncategorised"]["website"][my_domain]["time"]
 
                 for activity, cnt in reference_dict["uncategorised"]["offline"].items():
                     perm_dic["offline"][activity] = perm_dic["offline"].get(activity,0) + cnt 
@@ -152,6 +156,15 @@ def do_the_work():
                 json.dump(perm_dic, open(HISTORY_FILE, "w+"))
 
             reference_dict["uncategorised"] = reference_dict["uncategorised"]["total"]
+            
+            # Give notification whenever unknown time exceeds 30% of other time.
+            categorized_time = reference_dict["1"] +reference_dict["2"]+reference_dict["3"]+reference_dict["4"]
+            uncategorized_time =  reference_dict["uncategorised"]
+            if uncategorized_time > 0.5 * categorisation_data: # give red alert for categorization
+                os.system('notify-send  -t 5 -u critical "[timer]: Unknown time exceeded 50%" "Run command : \"categorize\" to categorise"')
+            elif uncategorized_time > 0.3 * categorisation_data: # give normal alert for categorization
+                os.system('notify-send  -t 5 -u normal "[timer]: Unknown time exceeded 30%" "Run command : \"categorize\" to categorise"')
+
             if os.path.isfile("/home/raj/Documents/scheduler/daily_activity/"+str(previous_date)+".png")==False:
             # Send data to display function
                 display(reference_dict, previous_date)
@@ -163,7 +176,7 @@ def do_the_work():
 
     
     # print(dic)
-
+    activity_time = random_minute + timer_dic.get("previous_remaining_time",0)
     try:
         p_id = (
             subprocess.check_output(["xdotool", "getactivewindow", "getwindowpid"])
@@ -176,6 +189,7 @@ def do_the_work():
         p_name = "gnome-terminal" if p_name=="gnome-terminal-"   else p_name
         list_browsers=["firefox-bin", "vivaldi-bin"]
 
+        print( update_time, today_date, end=" ")
         tab=""
         if p_name in list_browsers:
             if p_name=="firefox-bin":
@@ -187,46 +201,49 @@ def do_the_work():
 
             if tab!=None and  tab.strip()!="":
                 dom = extract(tab).domain
-                print("Last activity was ", dom)
+                print("Last activity was: ", dom)
                 
                 if dom=="google": # take cases for categorisation
                     sub =  extract(tab).subdomain
                     if sub=="www": # can be all of the 4 categories. 
-                        timer_dic[today_date]["1"] +=  2 
-                        timer_dic[today_date]["2"] +=  2  
-                        timer_dic[today_date]["4"] +=  1 
+                        timer_dic[today_date]["1"] +=  int(activity_time*(2/5)) 
+                        timer_dic[today_date]["2"] +=  int(activity_time*(2/5))  
+                        timer_dic[today_date]["4"] +=  int(activity_time*(1/5)) 
                     else: # most subdomains of google are academic while others are non-academic.
-                        timer_dic[today_date]["1"] +=  3 
-                        timer_dic[today_date]["2"] +=  2 
+                        timer_dic[today_date]["1"] +=  int(activity_time*(3/5)) 
+                        timer_dic[today_date]["2"] +=  int(activity_time*(2/5)) 
                 
                 elif dom=="youtube":
-                        timer_dic[today_date]["2"] +=  1 
-                        timer_dic[today_date]["3"] +=  2 
-                        timer_dic[today_date]["4"] +=  2 
+                        timer_dic[today_date]["2"] +=  int(activity_time*(1/5)) 
+                        timer_dic[today_date]["3"] +=  int(activity_time*(2/5)) 
+                        timer_dic[today_date]["4"] +=  int(activity_time*(2/5))
 
                 elif dom in categorisation_data["websites"]:
-                    timer_dic[today_date][str(categorisation_data["websites"][dom])] += 5
+                    timer_dic[today_date][str(categorisation_data["websites"][dom])] += activity_time
                 
                 else:
                     timer_dic[today_date]["uncategorised"]["website"][dom]= timer_dic[today_date]["uncategorised"]["website"].get(dom,{})
                     timer_dic[today_date]["uncategorised"]["website"][dom]["site"] = timer_dic[today_date]["uncategorised"]["website"][dom].get("site", [])
+                    timer_dic[today_date]["uncategorised"]["website"][dom]["time"] = timer_dic[today_date]["uncategorised"]["website"][dom].get("time", 0)
                     timer_dic[today_date]["uncategorised"]["website"][dom]["site"].append(tab)
-                    timer_dic[today_date]["uncategorised"]["total"] += 5 
+                    timer_dic[today_date]["uncategorised"]["website"][dom]["time"] += activity_time # to keep note that which domain is using how much time
+                    timer_dic[today_date]["uncategorised"]["total"] += activity_time 
             else: # private tab in entertainment
                 print("Some unloaded/private tab")
-                timer_dic[today_date]["3"] +=  5
+                timer_dic[today_date]["3"] +=  activity_time
                 # os.system("notify-send  -u critical private")
 
         else:
-            print("Last activity ", p_name)
+            print("Last activity: ", p_name)
             if p_name in categorisation_data["offline"]:
-                timer_dic[today_date][str(categorisation_data["offline"][p_name])] += 5
+                timer_dic[today_date][str(categorisation_data["offline"][p_name])] += activity_time
             else:
-                timer_dic[today_date]["uncategorised"]["offline"][p_name] += 5
-                timer_dic[today_date]["uncategorised"]["total"]+= 5
+                timer_dic[today_date]["uncategorised"]["offline"][p_name] += activity_time
+                timer_dic[today_date]["uncategorised"]["total"]+= activity_time
         
 
         timer_dic[today_date]["last_updated"] = update_time
+        timer_dic["previous_remaining_time"] = 5- random_minute
         json.dump(timer_dic, open("/home/raj/Documents/scheduler/timer.json", "w+"))
         return True # success
     except Exception as e:

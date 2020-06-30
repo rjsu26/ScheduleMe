@@ -3,8 +3,9 @@
 
 import os 
 import json
-from datetime import date, timedelta 
+from datetime import date, timedelta, datetime
 from task_report import get_data
+import add_tasks 
 from config import TODO_FILE, SAVE_PATH
 
 def read_file():
@@ -14,11 +15,13 @@ def read_file():
         data = {}
     return data  
 
+def write_file(data):
+    json.dump(data, open(TODO_FILE, "w+"))
 
-def read_tasks(my_date, only_print_incomplete=False):
+def read_tasks(data, my_date, only_print_incomplete=False):
     """ Function to print all of a date's tasks """
     try:
-        data = read_file()
+        # data = read_file()
 
         if data=={} or data.get(my_date)==None:
             return 0
@@ -47,30 +50,35 @@ def read_tasks(my_date, only_print_incomplete=False):
 if __name__ == "__main__":
     try:
         today_date = date.today().strftime("%d-%m-%Y")
+        data = read_file()
+        last_check = data.get("status")
+        if last_check != today_date:
+            data=add_tasks.check_delay_and_update(data)
+            write_file(data)
+
+    	#data = read_file()
         os.system("clear")
         message = """ \t\t===============Today's tasks============== """
         print(message)
-        
-        # check if a report exists dated in less than 7 days from now.
-        flag = False 
-        for i in range(4):
-            new_date = (date.today() - timedelta(days=i)).strftime("%d-%m-%Y")
-            if os.path.exists(SAVE_PATH + str(new_date)+".png"): # if file exists
-                flag = True 
-                break 
-        
-        if flag==False: # no report in past week found 
-            get_data()
+        last_report_date = data.get("last_report")
+        if last_report_date!=None:
+            last_report_date = datetime.strptime(last_report_date,"%d-%m-%Y")
+
+            today = datetime.today()
+            if (today-last_report_date)/timedelta(days=1) >=4:
+                get_data()
+                data["last_report"]= today_date
+                write_file(data)
 
         c2 = int("0"+ input("\n-> Display today's tasks(0) or all remaining tasks(anything else)?: "))
         if c2==0:
-            if read_tasks(today_date)==0:
+            if read_tasks(data, today_date)==0:
                 print("No tasks for today..")
         else :
             # Assuming tasks are added only upto 30 days from today
             for i in range(10):
                 new_date = (date.today() + timedelta(days=i)).strftime("%d-%m-%Y")
-                read_tasks(new_date, True)
+                read_tasks(data, new_date, True)
         print()
     except KeyboardInterrupt:
         print("KeyBoardInterrupt")

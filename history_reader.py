@@ -62,8 +62,11 @@ def main():
         print(e)
     
     finally:
+        today_date = date.today().strftime("%d-%m-%Y")
+        data["last_updated"] = today_date
         json.dump(data, open(HISTORY_FILE, "w+"))
         json.dump(categorised_data, open(CATEGORIZATION_FILE, "w+"))
+        print("\nAll changes saved successfully!!\n")
 
 
 def  do_the_categorization(data, categorised_data, do_offline):
@@ -90,14 +93,14 @@ def  do_the_categorization(data, categorised_data, do_offline):
 
             choice = get_choice()
             if choice==6:
-                break
+                return 
             elif choice==5:
                 continue
             else:
                 categorised_data["websites"][k]=choice 
 
         data["website"].pop(k,None) # remove the domain <k> from data dictionary if present, otherwise return None
-
+    print("\nGetting list of all system applications ...\n")
     applications_dict = find_all_applications()
 
     if do_offline==False: # do_offline will be false when its not the installation-time run.
@@ -119,7 +122,7 @@ def  do_the_categorization(data, categorised_data, do_offline):
                 print(menu)
                 choice = get_choice()
                 if choice==6:
-                    break
+                    return
                 elif choice==5:
                     continue
                 else:
@@ -141,14 +144,12 @@ def  do_the_categorization(data, categorised_data, do_offline):
                 print(menu)
                 choice = get_choice()    
                 if choice==6:
-                    break
+                    return
                 elif choice==5:
                     continue
                 else:
                     categorised_data["offline"][k]=choice
 
-    today_date = date.today().strftime("%d-%m-%Y")
-    data["last_updated"] = today_date
     return
 
 def get_choice():
@@ -157,10 +158,9 @@ def get_choice():
             choice = input("Choose the option out of above 4 possibilities. Enter 5 to skip, 6 to terminate: ")
             if choice.strip() =="":
                 continue
-            choice = int(choice)
+            choice = int("0"+choice)
             if choice>=1 and choice<=6:
                 return choice 
-                break
             else:
                 print("Wrong input. Please re-enter.. ")
 

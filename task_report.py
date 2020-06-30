@@ -71,9 +71,9 @@ def get_data():
             break 
         new_date = (date.today() - timedelta(days=i)).strftime("%d-%m-%Y")
         if data.get(new_date)!=None: 
-            if  type(data[new_date][0])==list:
-                continue
-            elif type(data[new_date][0])==int: # found a data point
+            # if  type(data[new_date][0])==list:
+                # continue
+            if type(data[new_date][0])==int: # found a data point
                 k+=1
                 data_dict[new_date[:-5]]=data[new_date]
 

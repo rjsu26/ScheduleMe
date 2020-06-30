@@ -2,16 +2,19 @@
 import os 
 import json
 from datetime import date, timedelta 
-from show_tasks import read_tasks
+import show_tasks
 from config import TODO_FILE
 
 
 """ {
     "11-05-2020":[3,8], // past date converted to new format [completed count, incompleted/missed-deadline count]
     "17-05-2020":[("Take the dog to vet", 0), ("Get new cat", 1)],
-    "19-05-2020":[("Kill the cat", 0)]
+    "19-05-2020":[("Kill the cat", 0)],
+    "last_report":"15-05-2020",
+    "status":<if not today's date, then signifies to check for pending tasks else not>
     }
 """
+today_date = date.today().strftime("%d-%m-%Y")
 
 def read_file():
     try:
@@ -23,7 +26,6 @@ def read_file():
 def write_file(data):
     json.dump(data, open(TODO_FILE, "w+"))
 
-today_date = date.today().strftime("%d-%m-%Y")
 
 def check_delay_and_update(data):
     """ Check whether all tasks for previous date is complete or not. If not, then prompt user whether to extend it or discard it. Update the date's entry with [complete, incomplete count] format. Both delayed or cancelled tasks would be counted in incomplete count anyways. """
@@ -53,6 +55,9 @@ def check_delay_and_update(data):
                             data[delay_date].append([task,0])
                 
                 data[new_date]= [complete, incomplete]
+        
+        data["status"]=today_date # set the status to today i.e. latest
+
         # json.dump(data, open(TODO_FILE, "w+"))
         # write_file(data)
         # print("All stages complete. .")
@@ -65,21 +70,29 @@ def check_delay_and_update(data):
 
         # print(e)
     finally:
-        write_file(data)
+        # write_file(data)
+        return data
+ 
 
 
-
-def add_tasks():
+def add_tasks(data):
     """ Function to first print the list of today's entries and then take input to add to the list """
     try:
-        data = read_file()
+        # data = read_file()
+        message = """ \t\t=============== Add task to schedule ============== """
         while True:
+            os.system("clear")
+            print(message)
+            print("\nToday's tasks:")
+            if show_tasks.read_tasks(data, today_date, False)==0:
+                print("No tasks today")
+
             task = input("\nEnter your ToDo entry: ").strip()
             if task==None or task=="":
                 continue 
             while True:
                 try:
-                    delay = int("0"+input("\nEnter deadline for this task(0-30). 0 for today, 1 for tomorrow, and so on: "))
+                    delay = int("0"+input("\nEnter deadline: 0 for today, 1 for tomorrow.. : "))
                     task_date = (date.today() + timedelta(days=delay)).strftime("%d-%m-%Y")
                     break 
                 except ValueError:
@@ -106,15 +119,13 @@ def add_tasks():
     
 if __name__ == "__main__":
 
-    os.system("clear")
-    message = """ \t\t=============== Add task to schedule ============== """
-    check_delay_and_update(read_file())
+    data = read_file()
+    last_check = data.get("status")
+    if last_check != today_date:
+        data=check_delay_and_update(data)
 
+    #data = read_file()    
     os.system("clear")
-    print(message)
-    print("\nToday's tasks:")
-    if read_tasks(today_date, False)==0:
-        print("No tasks today")
-    add_tasks()
+    add_tasks(data)
 
     # os.system("clear")

@@ -2,7 +2,6 @@
 import os 
 import json
 from datetime import date, timedelta 
-from show_tasks import read_tasks
 from config import TODO_FILE
 
 def read_file():
@@ -57,14 +56,15 @@ def mark_tasks():
             if c2!=0:
                 i+=1
         # json.dump(data,open(TODO_FILE, "w+"))
-        write_file(data)
 
     except KeyboardInterrupt:
         print("KeyboardInterrupt")
     except :
         print("Some error occurred")
+    finally:
+        write_file(data)
 
 if __name__ == "__main__":
     mark_tasks()
-    input("Press anything to exit..")
+    #input("Press anything to exit..")
     os.system("clear")
