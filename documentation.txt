@@ -205,6 +205,14 @@ To run these programs as commands from the terminal from any directory in genera
 
 references: https://stackoverflow.com/questions/6967331/how-do-i-install-a-script-to-run-anywhere-from-the-command-line
 
+Update 6 July 2020: 
+--------------------------------
+Added a feature to allow marking tasks from last day. Situation, you completed a listed task, but forgot to mark it before 12, or your sleep time is much after 12 midnight so you complete most of your tasks of a day after 12 am. In that situation, previously, one could only mark it as incomplete or cancelled.
+
+Now, there is no such restriction. Whenever addtask, showtask or marktask will be called, it will pop that previous day's tasks are yet to be marked. Once all of previous day's tasks are marked as either complete, delayed or cancelled, the aggregation of total completed and incompleted task would be done and the data would be completed in format [x,y] and status will be changed.
+
+Also, tasks are now based on weights from 1(basic) to 5(demanding) which has to be entered whenever new task is added. Default is 1. Consistency Plot will now be made as per net completed tasks' weight and net in-completed tasks' weight. Enlisting of tasks will also be in order, with more weighted task higher in the list.
+
 --------------------------------------------------------------------------
 
 check_toDo.py :

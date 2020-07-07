@@ -148,7 +148,7 @@ def do_the_work():
                     perm_dic["website"][my_domain]["sites"].extend(reference_dict["uncategorised"]["website"][my_domain]["site"])
                     # removing all duplicates
                     perm_dic["website"][my_domain]["sites"] = list(set(perm_dic["website"][my_domain]["sites"])) 
-                    perm_dic["website"][my_domain]["count"] = perm_dic["website"][my_domain].get("count",0) + reference_dict["uncategorised"]["website"][my_domain]["time"]
+                    perm_dic["website"][my_domain]["count"] = perm_dic["website"][my_domain].get("count",0) + reference_dict["uncategorised"]["website"][my_domain].get("time",0)
 
                 for activity, cnt in reference_dict["uncategorised"]["offline"].items():
                     perm_dic["offline"][activity] = perm_dic["offline"].get(activity,0) + cnt 
@@ -160,9 +160,9 @@ def do_the_work():
             # Give notification whenever unknown time exceeds 30% of other time.
             categorized_time = reference_dict["1"] +reference_dict["2"]+reference_dict["3"]+reference_dict["4"]
             uncategorized_time =  reference_dict["uncategorised"]
-            if uncategorized_time > 0.5 * categorisation_data: # give red alert for categorization
+            if uncategorized_time > 0.5 * categorized_time: # give red alert for categorization
                 os.system('notify-send  -t 5 -u critical "[timer]: Unknown time exceeded 50%" "Run command : \"categorize\" to categorise"')
-            elif uncategorized_time > 0.3 * categorisation_data: # give normal alert for categorization
+            elif uncategorized_time > 0.3 * categorized_time: # give normal alert for categorization
                 os.system('notify-send  -t 5 -u normal "[timer]: Unknown time exceeded 30%" "Run command : \"categorize\" to categorise"')
 
             if os.path.isfile("/home/raj/Documents/scheduler/daily_activity/"+str(previous_date)+".png")==False:
@@ -201,7 +201,7 @@ def do_the_work():
 
             if tab!=None and  tab.strip()!="":
                 dom = extract(tab).domain
-                print("Last activity was: ", dom)
+                print("Last activity was: {} for {} mins" .format(dom,activity_time))
                 
                 if dom=="google": # take cases for categorisation
                     sub =  extract(tab).subdomain
@@ -229,12 +229,12 @@ def do_the_work():
                     timer_dic[today_date]["uncategorised"]["website"][dom]["time"] += activity_time # to keep note that which domain is using how much time
                     timer_dic[today_date]["uncategorised"]["total"] += activity_time 
             else: # private tab in entertainment
-                print("Some unloaded/private tab")
+                print("Some unloaded/private tab for : {} mins".format(activity_time))
                 timer_dic[today_date]["3"] +=  activity_time
                 # os.system("notify-send  -u critical private")
 
         else:
-            print("Last activity: ", p_name)
+            print("Last activity was : {} for {} mins".format( p_name,activity_time))
             if p_name in categorisation_data["offline"]:
                 timer_dic[today_date][str(categorisation_data["offline"][p_name])] += activity_time
             else:

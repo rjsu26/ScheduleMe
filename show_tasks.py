@@ -28,7 +28,7 @@ def read_tasks(data, my_date, only_print_incomplete=False):
         else:
             # Sort the list to display incomplete task first
             if only_print_incomplete==True:
-                new_lst = [x for x in data[my_date] if x[1]==0]
+                new_lst = [x for x in data[my_date] if x[1]<0]
             else:
                 new_lst = sorted(data[my_date], key = lambda x: x[1]) 
 
@@ -37,7 +37,7 @@ def read_tasks(data, my_date, only_print_incomplete=False):
                 i=1
                 for k,v in new_lst:
                     # print(i,end=" ")
-                    if v==1:
+                    if v>=1:
                         print("  - [x] ", end=" ")
                     else:
                         print("  - [ ] ", end=" ")
@@ -61,14 +61,16 @@ if __name__ == "__main__":
         message = """ \t\t===============Today's tasks============== """
         print(message)
         last_report_date = data.get("last_report")
-        if last_report_date!=None:
-            last_report_date = datetime.strptime(last_report_date,"%d-%m-%Y")
+        if last_report_date==None:
+            last_report_date = today_date
+            data["last_report"] = last_report_date
 
-            today = datetime.today()
-            if (today-last_report_date)/timedelta(days=1) >=4:
-                get_data()
-                data["last_report"]= today_date
-                write_file(data)
+        last_report_date = datetime.strptime(last_report_date,"%d-%m-%Y")
+        today = datetime.today()
+        if (today-last_report_date)/timedelta(days=1) >=4:
+            get_data()
+            data["last_report"]= today_date
+        write_file(data)
 
         c2 = int("0"+ input("\n-> Display today's tasks(0) or all remaining tasks(anything else)?: "))
         if c2==0:

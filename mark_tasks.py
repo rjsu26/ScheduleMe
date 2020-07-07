@@ -2,7 +2,10 @@
 import os 
 import json
 from datetime import date, timedelta 
+import add_tasks
 from config import TODO_FILE
+
+today_date = date.today().strftime("%d-%m-%Y")
 
 def read_file():
     try:
@@ -14,11 +17,9 @@ def read_file():
 def write_file(data):
     json.dump(data, open(TODO_FILE, "w+"))
 
-
-def mark_tasks():
+def mark_tasks(data):
     """ List all pending task, and prompt user which task to mark as complete. """
     try:
-        data = read_file()
         i =0
         while i<30:
             new_date = (date.today() + timedelta(days=i)).strftime("%d-%m-%Y")
@@ -30,7 +31,7 @@ def mark_tasks():
             message = """ \t\t===============Mark tasks ============== """
             print(message)
             print("\nAt date: ", new_date)
-            new_lst = [[x[0],idx] for idx,x in enumerate(data[new_date]) if x[1]==0]
+            new_lst = [[x[0],idx] for idx,x in enumerate(data[new_date]) if x[1]<0]
 
             for j in range(len(new_lst)):
                 print("\t-{} {}".format(j+1, new_lst[j][0]))
@@ -50,7 +51,7 @@ def mark_tasks():
             
             # c2 = int(input("\nChoose the task between [1-{}] to mark as complete: ".format(len(new_lst))))
             
-            data[new_date][new_lst[c1-1][1]][1]=1
+            data[new_date][new_lst[c1-1][1]][1]*=-1
             print("\n[$$$]Marked as complete!!!\n")
             c2 = int("0"+input("Mark more here? y(0), n(anything else): "))
             if c2!=0:
@@ -65,6 +66,12 @@ def mark_tasks():
         write_file(data)
 
 if __name__ == "__main__":
-    mark_tasks()
+    data = read_file()
+    last_check = data.get("status")
+    if last_check != today_date:
+        data=add_tasks.check_delay_and_update(data)
+    
+    os.system("clear")
+    mark_tasks(data)
     #input("Press anything to exit..")
     os.system("clear")
