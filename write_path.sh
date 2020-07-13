@@ -1,6 +1,7 @@
 #!/bin/bash  
+# Add all necessary file paths to config.py as hardcoded paths. These hardcoded paths will be used by almost all python programs as Global Variables after importing config.py
 
-# Find full path of the directory having this bash file. 
+
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 

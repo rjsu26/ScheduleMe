@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-
+#!/bin/bash  
+# Make a virtual environment folder in project directory and install all packages from requirements.txt. Also installs virtualenv package if not installed prior. 
 
 VP_ENV_DIR='.virtualenv'
 VP_REQ_FILE='requirements.txt'

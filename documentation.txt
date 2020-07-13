@@ -271,3 +271,49 @@ Using the path to log file: /home/raj/Documents/scheduler/cron.log , we ask the 
 
 To clear the log file at daily interval, we use anacron command:
 1          1       clear_logs  clear> /home/raj/Documents/scheduler/cron.log
+
+-----------------------------------------------------------------------------------------
+
+13 July 2017
+
+configure.sh : 
+--------------------
+
+Bash script to initialise all necessary files so that user has to do minimal manual tasks
+
+Components: 
+        1. make_venv.sh : Make a virtual environment folder in project directory and install all packages from requirements.txt. Also installs virtualenv package if not installed prior. 
+
+        2. write_path.sh :  Add all necessary file paths to config.py as hardcoded paths. These hardcoded paths will be used by almost all python programs as Global Variables after importing config.py
+
+        3.  make_bin_todo.sh:  Make a directory at ~/bin. Add this path to ~.bashrc and put all the commands related to ToDo programs into that directory.
+        # also add symlinks for add_birthdays program, pause and resume program(TBI)
+
+        4. : Add required files to ana/crons.
+
+        5. Ask user to do categorisation using "categorize" command .
+
+(to be implemented)
+uninstall.sh: 
+--------------------------
+    1. Remove all lines added in ana/crons using sed command. 
+    2. Delete the ~/bin folder and remove alias command from ~/.bashrc . 
+    3. Delete virtualenv folder, config.py, daily_activity, weekly_task_reports, all json files, and cron.log file.
+
+(TBI)
+pause_scheduler.sh:
+-------------------------
+    Command to pause all ongoing ScheduleMe programs. Will act as emergency exit. Reasons to use this can be: 
+        1. Unwanted interruption
+        2. System slowdown
+        3. Unforseen glitches
+        4. Too many notifications 
+
+    1. Stop all crons by by commenting them temprorarily. 
+
+(TBI)
+resume_scheduler.sh : 
+---------------------------------
+    Will be used after scheduler is paused, and needs to be resumed again. 
+
+    1. Uncomment all cronjobs 
