@@ -127,6 +127,7 @@ def add_tasks(data):
             data[task_date].append(tpl)
             # json.dump(data, open(TODO_FILE, "w+"))
             print("\n*Task entry for {} successfull!!*\n".format(task_date))
+            input()
             # while True:
             #     try:
             #         c = int("0"+ input("\nEnter more yes(1) else NO : "))
@@ -138,7 +139,7 @@ def add_tasks(data):
             #     break
         
     except KeyboardInterrupt:
-        print("KeyboardInterrupt")
+        print("Exiting..")
     except Exception as e:
         print( "Some error occurred")
     finally:
