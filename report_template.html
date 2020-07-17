@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <h1 class="index-header">Usage report</h1>
+  <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+  <!--     <link rel="stylesheet" href="/style.css"> -->
+
+  <!-- import the webpage's javascript file -->
+  <!--     <script src="/script.js" defer></script> -->
+</head>
+
+<body>
+  <p id="generated-on" style="color:grey"><em>Generated on: {{today_date}}</em></p>
+  <br><br>
+  <p><b>Data:</b> Academic, Non-academic, Entertainment, Miscalleneous</p>
+  <p><b>Number of records processed:</b> {{days}} days</p>
+  <br>
+  <div class="summary">
+    <h3 class="summary-header"><b>Summary of on-screen activity</b></h3>
+    <br>
+    <div class="grid-container">
+      <table border="0" id="nonetable">
+        <tr style="border: 0px;">
+          <td style="border: 0px;">
+            <div class="pie-chart">
+              <img class="pie" src="{{graph_url1}}">
+              <p id="table-caption">Plot: Distribution of activity</p>
+            </div>
+          </td>
+          <td style="border: 0px;">
+            <div class="table-style">
+              <table style="width:50%">
+                <tr>
+                  <th>Category</th>
+                  <th>Time</th>
+                </tr>
+                {% for column,data in activity.items() %}
+                <tr>
+                  <td>{{ column }}</td>
+                  <td>{{ data }} mins</td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+
+          </td>
+        </tr>
+
+      </table>
+
+    </div>
+
+    <!--     Make it as caption   -->
+    <p>Max academic time in a day: {{max_acad}} mins</p>
+    <p>Max entertainment time in a day: {{max_ent}} mins</p>
+    <p>Min academic time in a day: {{min_acad}} mins</p>
+    <p>Min entertainment time in a day: {{min_ent}} mins</p>
+
+  </div>
+  <br>
+  <br>
+  <br>
+  <div id="daily_activity_plot">
+    <h3 class="summary-header">Daily activity plot</h3>
+    <br><br>
+    <br><br>
+    <img class="chart" style="width: 600px;" src="{{graph_url3}}">
+  </div>
+
+
+  <!--  Regarding todo list  -->
+  <div>
+    <h3 class="summary-header">To-Do list summary</h3>
+
+    <div class="grid-container">
+      <table id="mytable">
+        <tr>
+          <td style="border: 0px;">
+            <div class="pie-chart">
+              <img class="pie" src="{{graph_url2}}">
+              <p id="table-caption">Plot: Distribution of activity</p>
+            </div>
+          </td>
+          <td style="border: 0px;">
+
+            <div class="table-style">
+              <table style="width:100%">
+                <tr>
+                  <th>Status</th>
+                  <th>Weight</th>
+                </tr>
+                {% for column,data in todo.items() %}
+                <tr>
+                  <td>{{ column }}</td>
+                  <td>{{ data }} </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>Max tasks completed in a day: {{max_comp_task}}</p>
+    <p>Most incomplete tasks in a day: {{max_incomp_task}}</p>
+
+    <img class="chart" style="width: 400px margin=10%" src="{{graph_url4}}">
+    <p id="table-caption">Plot: Daily distribution of tasks</p>
+
+  </div>
+  <br><br>
+  <!--  Suggestions  -->
+  <div>
+    <h3 class="summary-header">Suggestions</h3>
+    <br><br>
+    <ol>
+      {% for data in suggestions %}
+      <li>{{ data }} </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <style>
+    body {
+      border-style: solid;
+      margin: 2% 5%;
+      padding: 2% 5%;
+    }
+
+    .index-header {
+      text-align: center;
+      font-size: 3em;
+      font-family: Comic_sans;
+    }
+
+    h3 {
+      font-size: 1.5em;
+      text-align: center;
+    }
+
+    table,
+    th,
+    td {
+      border-collapse: collapse;
+      border: 1px solid black;
+      text-align: center;
+    }
+
+    #generated-on {
+      text-align: right;
+      /* text-color:red; */
+    }
+
+    #table-caption {
+      /*   margin-top=-10px; */
+      padding-left: 20%;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 40% 60%;
+      grid-gap: 10px;
+      background-color: white;
+    }
+
+    .grid-container>div {
+      text-align: center;
+      /*   padding: 20px 0; */
+      font-size: 20px;
+    }
+
+    .table-style {
+      padding: 10% 15%;
+    }
+
+    /* .chart{
+        text-align:center;
+        /* padding:5%; */
+    }
+
+    */ .pie-chart {
+      padding-left: 15%;
+      padding-right: 15%;
+    }
+
+    /* .pie{
+        padding-right: 35%;
+      } */
+    .summary-header {
+      border-style: groove;
+      text-align: center;
+    }
+
+    table#nonetable {
+      border-color: white;
+      border: none !important;
+    }
+
+    table#mytable {
+      border-color: white;
+      border: none !important;
+    }
+  </style>
+</body>
+
+</html>

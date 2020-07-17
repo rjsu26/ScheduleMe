@@ -1,6 +1,7 @@
 import json 
 import glob
 import subprocess
+from config import HOME
 
 get = lambda cmd: subprocess.check_output(cmd).decode("utf-8").strip()
 
@@ -27,7 +28,7 @@ def fetch_links_firefox():
     E.g. {'Facebook – log in or sign up': 'https://www.facebook.com/'}} """
 
     dic={}
-    temp1 ="/home/raj/.mozilla/firefox/*.default*" 
+    temp1 = HOME+".mozilla/firefox/*.default*" 
     temp2 = glob.glob(temp1) # generates all available sub-directories having pattern as temp1
     name = "/sessionstore-backups/recovery.jsonlz4"
     filepath = [x+name for x in temp2]

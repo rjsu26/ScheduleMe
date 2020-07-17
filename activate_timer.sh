@@ -1,4 +1,3 @@
-#! /bin/bash   
-source $HOME/Documents/scheduler/venv_scheduler/bin/activate
-chmod +x $HOME/Documents/scheduler/timer.py
-$HOME/Documents/scheduler/timer.py
+#!/bin/bash
+source /home/raj/Documents/scheduler/venv_scheduler/bin/activate
+/home/raj/Documents/scheduler/timer.py

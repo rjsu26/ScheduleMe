@@ -11,20 +11,11 @@ import processreader
 from matplotlib import pyplot as plt
 from timeit import timeit
 from tldextract import extract
-from config import BIRTHDAY_FILE, CATEGORIZATION_FILE, HISTORY_FILE, DAILY_ACTIVITY_PATH
+from config import BIRTHDAY_FILE, CATEGORIZATION_FILE, HISTORY_FILE, DAILY_ACTIVITY_PATH, TIMER_PATH, HOME
 # from youtube_scraping import find_category
 
 os.environ["DISPLAY"] = ":0.0"
-os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
-
-
-""" 
-Format of timer.json(which has data for every day):
-{
-    "website": {site1: 2, site2: 8, site3: 1, ...},
-    "offline" : {activity1:2, activity2:1, activity3:7, ...}
-}
- """
+os.environ["XAUTHORITY"] = HOME+ ".Xauthority"
 
 """ 
 Format of timer.json(which has data for every day):
@@ -36,7 +27,7 @@ Format of timer.json(which has data for every day):
     "uncategorised":{ "website": {
                                             domain: {
                                                 "site": [ site1, site2, ..],
-                                                "count" : 4
+                                                "time" : 4
                                                           }
                                                 }
                                             },
@@ -113,7 +104,7 @@ def do_the_work():
     categorisation_data = json.load(open(CATEGORIZATION_FILE,"r")) # dictionary having all categorized data
 
     try:    
-        timer_dic = json.load(open("/home/raj/Documents/scheduler/timer.json", "r")) #Dictionary with all daily activity data.
+        timer_dic = json.load(open(TIMER_PATH, "r")) #Dictionary with all daily activity data.
     except :
         timer_dic = {}
 
@@ -165,7 +156,7 @@ def do_the_work():
             elif uncategorized_time > 0.3 * categorized_time: # give normal alert for categorization
                 os.system('notify-send  -t 5 -u normal "[timer]: Unknown time exceeded 30%" "Run command : \"categorize\" to categorise"')
 
-            if os.path.isfile("/home/raj/Documents/scheduler/daily_activity/"+str(previous_date)+".png")==False:
+            if os.path.isfile(DAILY_ACTIVITY_PATH+str(previous_date)+".png")==False:
             # Send data to display function
                 display(reference_dict, previous_date)
         
@@ -214,9 +205,10 @@ def do_the_work():
                         timer_dic[today_date]["2"] +=  int(activity_time*(2/5)) 
                 
                 elif dom=="youtube":
-                        timer_dic[today_date]["2"] +=  int(activity_time*(1/5)) 
-                        timer_dic[today_date]["3"] +=  int(activity_time*(2/5)) 
-                        timer_dic[today_date]["4"] +=  int(activity_time*(2/5))
+                        # timer_dic[today_date]["1"] +=  int(activity_time*(4/5)) 
+                        # timer_dic[today_date]["2"] +=  int(activity_time*(1/5)) 
+                        timer_dic[today_date]["3"] +=  int(activity_time*(5/5)) 
+                        # timer_dic[today_date]["4"] +=  int(activity_time*(2/5))
 
                 elif dom in categorisation_data["websites"]:
                     timer_dic[today_date][str(categorisation_data["websites"][dom])] += activity_time
@@ -244,7 +236,7 @@ def do_the_work():
 
         timer_dic[today_date]["last_updated"] = update_time
         timer_dic["previous_remaining_time"] = 5- random_minute
-        json.dump(timer_dic, open("/home/raj/Documents/scheduler/timer.json", "w+"))
+        json.dump(timer_dic, open(TIMER_PATH, "w+"))
         return True # success
     except Exception as e:
         print(e)

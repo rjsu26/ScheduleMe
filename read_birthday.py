@@ -5,10 +5,10 @@
 import datetime as dt
 import os
 import json
-from config import BIRTHDAY_FILE
+from config import BIRTHDAY_FILE, HOME
 
 os.environ["DISPLAY"] = ":0.0"
-os.environ["XAUTHORITY"] = "/home/raj/.Xauthority"
+os.environ["XAUTHORITY"] = HOME+ ".Xauthority"
 
 def message(title, message):
   os.system('notify-send  -u low "'+title+'" "'+message+'"')
